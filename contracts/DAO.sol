@@ -16,8 +16,8 @@ contract DAO {
     }
 
     mapping(bytes32 => Proposal) public proposals; // hash -> proposal
-    mapping(address => mapping(bytes32 => bool)) public votes; // address investor -> proposal hash -> voted?
-    mapping(address => uint256) public shares; // address investor -> shares
+    mapping(address => mapping(bytes32 => bool)) public votes; // address voter (investor) -> proposal hash -> voted?
+    mapping(address => uint256) public shares; // address voter (investor) -> shares   [1 share per governance token]
     uint256 public totalShares;
     IERC20 public token;
     uint256 constant CREATE_PROPOSAL_MIN_SHARE = 1000 * 10**18; // minimum number of shares to create a proposal (1000 governance tokens)
@@ -42,6 +42,7 @@ contract DAO {
         token.transfer(msg.sender, amount);
     }
 
+    // create a voting proposal
     function createProposal(bytes32 proposalHash) external {
         require(
             shares[msg.sender] >= CREATE_PROPOSAL_MIN_SHARE,
@@ -63,19 +64,25 @@ contract DAO {
 
     function vote(bytes32 proposalHash, Side side) external {
         Proposal storage proposal = proposals[proposalHash];
-        require(votes[msg.sender][proposalHash] == false, 'already voted');
-        require(proposals[proposalHash].hash != bytes32(0), 'proposal already exist');
-        require(block.timestamp <= proposal.createdAt + VOTING_PERIOD, 'voting period over');
+        require(votes[msg.sender][proposalHash] == false, "already voted");
+        require(
+            proposals[proposalHash].hash != bytes32(0),
+            "proposal already exist"
+        );
+        require(
+            block.timestamp <= proposal.createdAt + VOTING_PERIOD,
+            "voting period over"
+        );
         votes[msg.sender][proposalHash] = true;
         if (side == Side.Yes) {
             proposal.votesYes += shares[msg.sender];
-            // if > 50%
-            if (proposal.votesYes * 100 / totalShares > 50) {
+            // if > 50%  (proposal.votesYes / totalShares > 0.5)
+            if ((proposal.votesYes * 100) / totalShares > 50) {
                 proposal.status = Status.Approved;
             }
         } else {
             proposal.votesNo += shares[msg.sender];
-            if (proposal.votesNo * 100 / totalShares > 50) {
+            if ((proposal.votesNo * 100) / totalShares > 50) {
                 proposal.status = Status.Rejected;
             }
         }
