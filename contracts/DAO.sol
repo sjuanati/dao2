@@ -20,7 +20,7 @@ contract DAO {
     mapping(address => uint256) public shares; // address voter (investor) -> shares   [1 share per governance token]
     uint256 public totalShares;
     IERC20 public token;
-    uint256 constant CREATE_PROPOSAL_MIN_SHARE = 1000 * 10**18; // minimum number of shares to create a proposal (1000 governance tokens)
+    uint256 constant CREATE_PROPOSAL_MIN_SHARE = 100 * 10**18; // minimum number of shares to create a proposal (100 governance tokens)
     uint256 constant VOTING_PERIOD = 7 days;
 
     constructor(address _token) {
