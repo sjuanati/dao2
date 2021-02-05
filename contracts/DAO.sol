@@ -67,7 +67,7 @@ contract DAO {
         require(votes[msg.sender][proposalHash] == false, "already voted");
         require(
             proposals[proposalHash].hash != bytes32(0),
-            "proposal already exist"
+            "proposal does not exist"
         );
         require(
             block.timestamp <= proposal.createdAt + VOTING_PERIOD,
